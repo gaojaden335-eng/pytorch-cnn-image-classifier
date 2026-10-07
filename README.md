@@ -1,18 +1,19 @@
 # PyTorch Image Classification CNN
 
-A compact, reproducible PyTorch project for training and evaluating a convolutional
-neural network on a five-class image dataset. It includes configurable training,
+A compact PyTorch project for training and evaluating a convolutional neural network
+on a five-class image dataset. It includes configurable training,
 learning-rate experiments, checkpointing, confusion-matrix generation, and qualitative
 prediction visualizations.
 
-The repository contains source code only. Datasets, model weights, local environments,
-and submission materials are intentionally excluded.
+This is a source-first public release. The original dataset, face images, model weights,
+local environments, and unrelated submission materials are intentionally excluded for
+privacy and redistribution safety.
 
 ## Features
 
-- Small CNN with batch normalization and configurable output classes
+- Small two-block CNN with batch normalization
 - Folder-based train/test datasets
-- Reproducible training with deterministic random seeds
+- Seeded training runs for more consistent experiments
 - Optional horizontal-flip augmentation and weight decay
 - Batch learning-rate experiments
 - Classification reports, confusion matrices, and prediction examples
@@ -25,7 +26,7 @@ and submission materials are intentionally excluded.
 |-- src/image_classifier/   # package source
 |-- tests/                  # dataset-free unit tests
 |-- docs/                   # data layout and usage notes
-|-- results/                # non-sensitive example metrics and plots
+|-- results/                # non-sensitive aggregate result example
 |-- pyproject.toml
 |-- requirements.txt
 `-- LICENSE
@@ -65,6 +66,20 @@ data/
 Supported image formats are JPEG, PNG, BMP, and WebP. See
 [`docs/data-format.md`](docs/data-format.md) for details.
 
+The reference implementation uses the fixed class order `faces`, `dog`, `airplanes`,
+`keyboard`, and `cars`. To use different classes, update `CLASS_NAMES` in
+`src/image_classifier/config.py` and keep the number of model outputs consistent.
+
+## Model architecture
+
+The reference network accepts `3 x 250 x 250` RGB tensors and applies:
+
+1. `7 x 7` convolution, batch normalization, ReLU, and max pooling
+2. `3 x 3` convolution, batch normalization, ReLU, and max pooling
+3. A fully connected layer from `64 x 30 x 30` features to five logits
+
+Images are converted to RGB, resized to `250 x 250`, and normalized to `[-1, 1]`.
+
 ## Quick start
 
 Validate the model and dataset:
@@ -98,12 +113,16 @@ image-classifier-examples outputs/cnn_lr_0.001.pt --data-root data
 ```
 
 All generated checkpoints and plots are written to `outputs/`, which is ignored by Git.
+The commands require a dataset matching the documented folder structure; the repository
+does not download or bundle one automatically.
 
 ## Example results
 
 On the original five-class experimental dataset, a learning rate of `1e-4` reached 70%
-test accuracy without augmentation and 76% with horizontal-flip augmentation. These
-figures are illustrative; performance will vary with the dataset and split.
+test accuracy without augmentation and 76% with horizontal-flip augmentation. The
+confusion matrix below contains aggregate counts only. Because the original dataset and
+weights are not redistributed, these archived results cannot be reproduced from this
+repository alone. Performance will vary with the dataset and split.
 
 ![Confusion matrix](results/confusion_matrix.png)
 
@@ -112,6 +131,9 @@ figures are illustrative; performance will vary with the dataset and split.
 ```bash
 pytest
 ```
+
+The included tests verify model output shape and finite predictions without loading a
+dataset. End-to-end training and evaluation require user-provided images.
 
 ## Privacy and security
 
